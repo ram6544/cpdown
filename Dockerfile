@@ -1,23 +1,24 @@
-FROM ubuntu:latest
+FROM ubuntu:22.04  # Specific version use karo
 
+# Python 3.10 install karo (Python 3.11+ compatible hai)
 RUN apt-get update -y && apt-get upgrade -y \
-&& apt-get install -y --no-install-recommends \
-   gcc build-essential \
-   libffi-dev musl-dev \
-   ffmpeg aria2 \
-   python3 python3-pip python3-venv python3-dev \
-&& apt-get clean \
-&& rm -rf /var/lib/apt/lists/*
+    && apt-get install -y --no-install-recommends \
+    python3.10 \
+    python3-pip \
+    ffmpeg \
+    aria2 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY . /app/
 WORKDIR /app/
 
-# FIX 1: virtual environment
-RUN python3 -m venv /venv
-ENV PATH="/venv/bin:$PATH"
+COPY Installer /app/Installer
 
-# FIX 2: install requirements inside venv
-RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r Installer
+# Force binary wheel installation
+RUN pip3 install --no-cache-dir --upgrade pip \
+    && pip3 install --no-cache-dir --only-binary=:all: -r Installer
 
-CMD ["python", "modules/main.py"]
+COPY . /app/
+
+CMD ["python3.10", "modules/main.py"]
+
